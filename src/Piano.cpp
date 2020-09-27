@@ -187,6 +187,7 @@ void CPiano::spaceNoteNames()
 void CPiano::addNoteNameItem(float posY, int pitch, int type)
 {
     noteNameItem_t  noteNameItem;
+
     int i;
 
     if (m_noteNameListLength >= arraySize(m_noteNameList))
@@ -226,10 +227,13 @@ void CPiano::addPianistNote(whichPart_t part, CMidiEvent midiNote, bool good)
     if (stavePos.getStaveIndex() >= MAX_STAVE_INDEX || stavePos.getStaveIndex() <= MIN_STAVE_INDEX )
         return;
 
-    if (good == true)
+    if (good == true) {
         m_goodChord.addNote(part, note);
-    else
+        qDebug("userinput good_on %d", note);
+    } else {
         m_badChord.addNote(part, note);
+        qDebug("userinput bad_on %d", note);
+    }
 
     posY = stavePos.getPosYAccidental();
     addNoteNameItem(posY, note, 0);
@@ -256,6 +260,7 @@ void CPiano::removeNoteNameItem(int pitch)
 // returns true only if the note is in the bad note list
 bool CPiano::removePianistNote(int note)
 {
+    qDebug("userinput off %d", note);
     removeNoteNameItem( note);
     m_goodChord.removeNote(note);
     return m_badChord.removeNote(note);

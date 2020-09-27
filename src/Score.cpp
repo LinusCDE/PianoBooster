@@ -110,6 +110,7 @@ void CScore::drawPianoKeyboard(){
 
         float xPlaceSize;
         float xKeySize;
+        char prevState[keysCount];
         char state[keysCount];
         bool stopped;
 
@@ -122,6 +123,11 @@ void CScore::drawPianoKeyboard(){
             xPlaceSize = xSize / 52.0f;
             xKeySize = xPlaceSize - xPlaceSize * 0.1f;
             stopped = false;
+
+            for(int k = 0; k < keysCount; k++) {
+                state[k] = 0;
+                prevState[k] = 0;
+            }
         }
 
         void drawBlackKey(int i, int k) {
@@ -145,7 +151,7 @@ void CScore::drawPianoKeyboard(){
             glEnd();
 
             glPopMatrix();
-            state[k] = 0;
+            //state[k] = 0;
         }
 
         void drawWhiteKey() {
@@ -164,7 +170,7 @@ void CScore::drawPianoKeyboard(){
             glEnd();
 
             glPopMatrix();
-            state[k++] = 0;
+            k++; //state[k++] = 0;
         }
 
         void drawOctave() {
@@ -199,12 +205,20 @@ void CScore::drawPianoKeyboard(){
     };
     static PianoKeyboard pianoKeyboard;
 
+
+    for(int k = 0; k < keysCount; k++) {
+        pianoKeyboard.state[k] = 0;
+    }
+
     CChord chord = m_piano->getBadChord();
     for(int n=0; n<chord.length(); ++n) {
         int pitch = chord.getNote(n).pitch();
         int k = pitch - 21;
         k = k < 0 ? 0 : (k >= keysCount ? (keysCount-1) : k);
         pianoKeyboard.state[k] = 2;
+        if(pianoKeyboard.prevState[k] != pianoKeyboard.state[k]) {
+            qDebug("hint bad_on %d", pitch);
+        }
     }
 
     for(size_t i=0; i<arraySize(m_scroll); ++i) {
@@ -216,7 +230,19 @@ void CScore::drawPianoKeyboard(){
             int k = *note - 21;
             k = k < 0 ? 0 : (k >= keysCount ? (keysCount-1) : k);
             pianoKeyboard.state[k] = 1;
+            if(pianoKeyboard.prevState[k] != pianoKeyboard.state[k]) {
+                int pitch = *note;
+                qDebug("hint good_on %d", pitch);
+            }
         }
+    }
+
+    for(int k = 0; k < keysCount; k++) {
+        if(pianoKeyboard.prevState[k] != 0 && pianoKeyboard.state[k] == 0) {
+            int pitch = k + 21;
+            qDebug("hint off %d", pitch);
+        }
+        pianoKeyboard.prevState[k] = pianoKeyboard.state[k];
     }
 
     pianoKeyboard.drawKeyboard();
